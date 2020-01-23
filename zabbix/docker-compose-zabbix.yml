@@ -1,0 +1,113 @@
+version: '3'
+services:
+    #serviço para subir o container do zabbix frontend
+    web:
+        image: zabbix/zabbix-web-nginx-mysql:ubuntu-latest
+        container_name: zbx-web
+        environment: 
+            - DB_SERVER_HOST=zbx-db
+            - DB_SERVER_PORT=3306
+            - MYSQL_DATABASE=zabbix
+            - MYSQL_USER=zabbix
+            - MYSQL_PASSWORD=zabbix
+            - ZBX_SERVER_HOST=zbx-srv
+            - PHP_TZ=America/Sao_Paulo
+        ports:
+            - "8888:80"
+        networks: 
+            - "monitoracao-network"
+        depends_on:
+            - "db"
+            - "server"
+    #serviço para subir o container do zabbix server
+    server: 
+        image: zabbix/zabbix-server-mysql:ubuntu-latest
+        container_name: zbx-srv
+        environment: 
+            - DB_SERVER_HOST=zbx-db
+            - DB_SERVER_PORT=3306
+            - ZBX_HOUSEKEEPINGFREQUENCY=0
+            - ZBX_ENABLEREMOTECOMMANDS=1
+            - MYSQL_DATABASE=zabbix
+            - MYSQL_USER=zabbix
+            - MYSQL_PASSWORD=zabbix
+        networks: 
+            - "monitoracao-network"       
+        depends_on:
+            - "db"
+    #serviço para subir o container do zabbix database
+    db:
+        image: mysql:5.7
+        container_name: zbx-db
+        environment: 
+            - MYSQL_ROOT_PASSWORD=1234
+            - MYSQL_DATABASE=zabbix
+            - MYSQL_USER=zabbix
+            - MYSQL_PASSWORD=zabbix
+        ports: 
+            - "3306:3306"
+        networks: 
+            - "monitoracao-network"
+        volumes:
+            - "/var/zbx-db-volume:/var/lib/mysql"
+    #serviço para subir o container do zabbix proxy
+    proxy:
+        image: zabbix/zabbix-proxy-sqlite3:ubuntu-latest
+        container_name: zbx-prx
+        environment: 
+            - ZBX_PROXYMODE=0
+            - ZBX_SERVER_HOST=zbx-srv
+            - ZBX_SERVER_PORT=10051
+            - ZBX_HOSTNAME=zbx-prx
+            - ZBX_ENABLEREMOTECOMMANDS=1
+            - ZBX_HOUSEKEEPINGFREQUENCY=0
+            - ZBX_JAVAGATEWAY_ENABLE=true
+            - ZBX_JAVAGATEWAY=zbx-java-gateway
+            - ZBX_JAVAGATEWAY_PORT=10052
+            - ZBX_STARTJAVAPOLLERS=5
+        ports: 
+            - "10051:10051"
+        networks: 
+            - "monitoracao-network"
+        depends_on: 
+            - "db"
+            - "server"
+            - "web"
+    #serviço para subir o container do zabbix java gateway
+    java-gateway:
+        image: zabbix/zabbix-java-gateway:ubuntu-latest
+        container_name: zbx-java-gateway
+        networks: 
+            - "monitoracao-network"
+        depends_on: 
+            - "db"
+            - "server"
+            - "web"
+            - "proxy"
+    #serviço para subir o container do zabbix agent
+    agent:
+        image: zabbix/zabbix-agent:ubuntu-latest
+        container_name: zbx-agt
+        environment: 
+            - ZBX_HOSTNAME=zbx-agt
+            - ZBX_METADATAITEM=system.uname
+            - ZBX_SERVER_HOST=zbx-prx
+            - ZBX_SERVER_PORT=10051
+            - ZBX_ENABLEREMOTECOMMANDS=1
+        networks: 
+            - "monitoracao-network"
+        depends_on: 
+            - "db"
+            - "server"
+            - "web"
+            - "proxy"
+        
+#rede para comunicação entre os containers
+networks:
+    monitoracao-network:
+        driver: bridge
+
+#volume para armazenamento dos dados na máquina local
+volumes:
+    zbx-db-volume:
+        driver: local
