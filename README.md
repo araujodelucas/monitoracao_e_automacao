@@ -1,9 +1,9 @@
 # Monitoração e Automação
 Subindo ambientes de monitoração e automação com Docker.
 #Zabbix
-Zabbix é uma ferramenta de monitoração open source, essencial para medir o desempenho e disponibilidade da infraestrutura e serviços.
-Nesse exemplo, vamos construir um ambiente de monitoração com o Zabbix, em poucos segundos, através do Docker-Compose.
-A arquitetura do Zabbix será distribuída, ou seja, cada componente (Zabbix-Frontend, Zabbix-Server, Zabbix-Database, Zabbix-Proxy, Zabbix-Java-Gateway e Zabbix-Agent) será executado em container. . Siga os passos a seguir:
+- Zabbix é uma ferramenta de monitoração open source, essencial para medir o desempenho e disponibilidade da infraestrutura e serviços.
+- Vamos construir um ambiente de monitoração com o Zabbix, em poucos segundos, através do Docker-Compose.
+- A arquitetura do Zabbix será distribuída, ou seja, cada componente (Zabbix-Frontend, Zabbix-Server, Zabbix-Database, Zabbix-Proxy, Zabbix-Java-Gateway e Zabbix-Agent) será executado em container. . Siga os passos a seguir:
 - 1 - Faça o pull desse repositório na sua máquina local
 - 2 - Dentro do diretório, execute o seguinte comando para criar e inicializar os containers em background: docker-compose -f docker-compose-zabbix.yml up -d
 - 3 - Verifique se todos os serviços estão UP: docker-compose -f docker-compose-zabbix.yml ps
